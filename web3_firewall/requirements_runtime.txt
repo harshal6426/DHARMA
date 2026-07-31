@@ -1,0 +1,20 @@
+# Runtime dependencies for all three web3_firewall components.
+# Install with: pip install -r requirements_runtime.txt
+
+# ── Inference Engine ─────────────────────────────────────────────────────────
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic-settings>=2.0
+
+# ── ML / Inference ───────────────────────────────────────────────────────────
+scikit-learn>=1.3
+joblib>=1.3
+numpy>=1.24
+
+# ── RPC Proxy ────────────────────────────────────────────────────────────────
+aiohttp>=3.9
+httpx>=0.27
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+pytest>=8.0
+pytest-asyncio>=0.23

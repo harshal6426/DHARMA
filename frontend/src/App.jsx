@@ -3,7 +3,6 @@ import Hero from './components/Hero';
 import Features from './components/Features';
 import HowItWorks from './components/HowItWorks';
 import Dashboard from './components/Dashboard';
-import Scanner from './components/Scanner';
 import Analytics from './components/Analytics';
 import LiveMonitor from './components/LiveMonitor';
 import AIExplanation from './components/AIExplanation';
@@ -21,9 +20,8 @@ export default function App() {
         <Features />
         <HowItWorks />
         <Dashboard />
-        <Scanner />
-        <Analytics />
         <LiveMonitor />
+        <Analytics />
         <AIExplanation />
         <TechStack />
         <Testimonials />
@@ -33,3 +31,4 @@ export default function App() {
     </div>
   );
 }
+

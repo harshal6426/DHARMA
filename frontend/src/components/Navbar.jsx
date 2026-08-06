@@ -7,7 +7,7 @@ const navLinks = [
   { name: 'Home', href: '#home' },
   { name: 'Features', href: '#features' },
   { name: 'Dashboard', href: '#dashboard' },
-  { name: 'Scanner', href: '#scanner' },
+  { name: 'Live Firewall', href: '#live' },
   { name: 'Analytics', href: '#analytics' },
   { name: 'Documentation', href: '#tech' },
   { name: 'Contact', href: '#footer' },
@@ -116,13 +116,13 @@ export default function Navbar() {
           {/* CTA */}
           <div className="hidden lg:flex items-center gap-3">
             <motion.a
-              href="#scanner"
+              href="#live"
               className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/30 hover:-translate-y-0.5"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
               <Zap className="w-4 h-4" />
-              Launch App
+              Live Firewall
             </motion.a>
           </div>
 
@@ -158,12 +158,12 @@ export default function Navbar() {
                 </a>
               ))}
               <a
-                href="#scanner"
+                href="#live"
                 onClick={() => setMobileOpen(false)}
                 className="mt-2 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
               >
                 <Zap className="w-4 h-4" />
-                Launch App
+                Live Firewall
               </a>
             </div>
           </motion.div>

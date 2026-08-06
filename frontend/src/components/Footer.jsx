@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { Shield, ArrowUpRight, Heart, ExternalLink } from 'lucide-react';
 
 const footerLinks = {
-  Product: ['Features', 'Dashboard', 'Scanner', 'Analytics', 'Live Monitor'],
-  Resources: ['Documentation', 'API Reference', 'Research Paper', 'Changelog', 'Status'],
+  Product: ['Features', 'Dashboard', 'Live Firewall', 'Analytics', 'Documentation'],
+  Resources: ['API Reference', 'Research Paper', 'Changelog', 'Status'],
   Company: ['About', 'Blog', 'Careers', 'Press Kit', 'Contact'],
   Legal: ['Privacy Policy', 'Terms of Service', 'Security', 'Cookie Policy'],
 };
@@ -42,12 +42,12 @@ export default function Footer() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <motion.a
-                href="#scanner"
+                href="#live"
                 className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all duration-300"
                 whileHover={{ scale: 1.04, y: -2 }}
               >
                 <Shield className="w-5 h-5" />
-                Launch DeFiShield Free
+                Launch Live Firewall
               </motion.a>
               <motion.a
                 href="https://github.com"

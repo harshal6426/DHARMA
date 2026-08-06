@@ -39,6 +39,23 @@ _INTERCEPTED_METHODS = frozenset({
     "eth_sendRawTransaction",
 })
 
+def _load_env_file() -> None:
+    for env_path in [".env", "../.env", "../../.env"]:
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            key, val = k.strip(), v.strip().strip('"\'')
+                            if key not in os.environ:
+                                os.environ[key] = val
+            except Exception:
+                pass
+
+_load_env_file()
+
 # Default URLs — override via environment variables.
 INFERENCE_ENGINE_URL: str = os.getenv("INFERENCE_ENGINE_URL", "http://127.0.0.1:8001")
 UPSTREAM_RPC_URL: str = os.getenv("UPSTREAM_RPC_URL", "https://cloudflare-eth.com")

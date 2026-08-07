@@ -2,12 +2,9 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
 import HowItWorks from './components/HowItWorks';
-import Dashboard from './components/Dashboard';
 import Analytics from './components/Analytics';
 import LiveMonitor from './components/LiveMonitor';
 import AIExplanation from './components/AIExplanation';
-import TechStack from './components/TechStack';
-import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 
@@ -19,12 +16,9 @@ export default function App() {
         <Hero />
         <Features />
         <HowItWorks />
-        <Dashboard />
         <LiveMonitor />
         <Analytics />
         <AIExplanation />
-        <TechStack />
-        <Testimonials />
         <FAQ />
       </main>
       <Footer />

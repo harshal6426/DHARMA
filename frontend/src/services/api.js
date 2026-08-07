@@ -148,6 +148,42 @@ export function buildFeatureVector(formData) {
   };
 }
 
+// --------------------------------------------------------------------------- //
+// RPC Proxy Integration (port 8545)
+// --------------------------------------------------------------------------- //
+const RPC_PROXY_URL = import.meta.env.VITE_RPC_PROXY_URL || 'http://localhost:8545';
+
+/**
+ * Send a JSON-RPC eth_sendTransaction payload to the local RPC Proxy.
+ * This triggers the proxy's firewall pipeline and terminal logging.
+ *
+ * @param {Object} txParams - Transaction parameters (from, to, gas, gasPrice, value, etc.)
+ * @returns {Promise<{blocked: boolean, response: Object}>}
+ */
+export async function sendToRpcProxy(txParams) {
+  const rpcPayload = {
+    jsonrpc: '2.0',
+    id: Math.floor(Math.random() * 10000),
+    method: 'eth_sendTransaction',
+    params: [txParams],
+  };
+
+  try {
+    const response = await fetch(RPC_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rpcPayload),
+    });
+    const data = await response.json();
+
+    const blocked = !!(data.error && data.error.code === -32000);
+    return { blocked, response: data };
+  } catch (error) {
+    console.warn('[RPC Proxy] Could not reach proxy at', RPC_PROXY_URL, error.message);
+    return { blocked: false, response: null };
+  }
+}
+
 const ALCHEMY_RPC_URL = import.meta.env.VITE_ALCHEMY_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/alch_kOwjzEOezLx-WglhdsayT';
 
 /**

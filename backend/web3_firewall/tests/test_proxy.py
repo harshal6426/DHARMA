@@ -122,7 +122,7 @@ class TestRouteToFirewall:
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client_fn.return_value = mock_client
 
-            is_fraud, prob = await route_through_firewall(
+            is_fraud, prob, features, latency = await route_through_firewall(
                 "eth_sendTransaction",
                 ETH_SEND_TX_RPC["params"],
                 inference_url="http://fake:8001",
@@ -130,6 +130,8 @@ class TestRouteToFirewall:
 
         assert is_fraud is True
         assert prob == pytest.approx(0.92)
+        assert isinstance(features, dict)
+        assert latency == pytest.approx(0.5)
 
     async def test_legitimate_tx_returns_false(self) -> None:
         from rpc_proxy.handler import route_through_firewall
@@ -148,12 +150,13 @@ class TestRouteToFirewall:
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client_fn.return_value = mock_client
 
-            is_fraud, prob = await route_through_firewall(
+            is_fraud, prob, features, latency = await route_through_firewall(
                 "eth_sendTransaction",
                 ETH_SEND_TX_RPC["params"],
             )
 
         assert is_fraud is False
+        assert isinstance(features, dict)
 
     async def test_inference_engine_down_allows_tx(self) -> None:
         """If inference engine is unreachable, fail-open (allow by default)."""
@@ -165,17 +168,18 @@ class TestRouteToFirewall:
             mock_client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
             mock_client_fn.return_value = mock_client
 
-            is_fraud, prob = await route_through_firewall(
+            is_fraud, prob, features, latency = await route_through_firewall(
                 "eth_sendTransaction",
                 ETH_SEND_TX_RPC["params"],
             )
 
         assert is_fraud is False
         assert prob == 0.0
+        assert isinstance(features, dict)
 
     async def test_empty_params_allows_tx(self) -> None:
         from rpc_proxy.handler import route_through_firewall
-        is_fraud, prob = await route_through_firewall("eth_sendTransaction", [])
+        is_fraud, prob, features, latency = await route_through_firewall("eth_sendTransaction", [])
         assert is_fraud is False
 
 
@@ -220,7 +224,7 @@ class TestProxyServer:
         # Patch route_through_firewall in the handler module (where proxy.py imports it from)
         with patch(
             "rpc_proxy.handler.route_through_firewall",
-            new=AsyncMock(return_value=(True, 0.95)),
+            new=AsyncMock(return_value=(True, 0.95, {"is_same_address": 1.0}, 1.2)),
         ):
             resp = await client.post("/", json=ETH_SEND_TX_RPC)
             assert resp.status == 200
@@ -241,7 +245,7 @@ class TestProxyServer:
         upstream_resp = {"jsonrpc": "2.0", "id": 1, "result": "0x" + "c" * 64}
         with patch(
             "rpc_proxy.handler.route_through_firewall",
-            new=AsyncMock(return_value=(False, 0.03)),
+            new=AsyncMock(return_value=(False, 0.03, {}, 0.8)),
         ), patch(
             "rpc_proxy.handler.forward_to_rpc",
             new=AsyncMock(return_value=upstream_resp),

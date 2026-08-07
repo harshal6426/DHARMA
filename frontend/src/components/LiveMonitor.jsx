@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { 
   Radio, ShieldAlert, ShieldCheck, Clock, Zap, Cpu, AlertTriangle, 
-  CheckCircle2, XCircle, Info, ChevronRight, RefreshCw, Sparkles, Filter, X 
+  CheckCircle2, XCircle, Info, ChevronRight, RefreshCw, Sparkles, Filter, X, 
+  Bug, Skull, RotateCcw, ArrowRightLeft
 } from 'lucide-react';
-import { predictTransaction, fetchRiskExplanation, buildFeatureVector, fetchRecentAlchemyTransactions } from '../services/api';
+import { predictTransaction, fetchRiskExplanation, buildFeatureVector, fetchRecentAlchemyTransactions, sendToRpcProxy } from '../services/api';
 
 // Wallet & Contract Generator Utilities
 function randomAddress() {
@@ -75,9 +76,61 @@ const SAMPLE_TEMPLATES = [
   },
 ];
 
-async function generateLiveTransaction(forceType = null) {
+// Specific attack scenario configurations for labeled demo buttons
+const ATTACK_SCENARIOS = {
+  phishing_drainer: {
+    name: 'Unverified Drainer Contract',
+    method: 'setApprovalForAll',
+    // Self-transfer + extreme gas = classic drainer pattern
+    selfTransfer: true,
+    gasPrice: (Math.random() * 250 + 180).toFixed(0),
+    gasLimit: '850000',
+    amount: '0.00',
+    blockNumber: '0x18e97d',
+  },
+  honeypot_scam: {
+    name: 'Fake Token Honeypot',
+    method: 'buyToken',
+    selfTransfer: false,
+    gasPrice: (Math.random() * 300 + 200).toFixed(0),
+    gasLimit: '1200000',
+    amount: (Math.random() * 15 + 5).toFixed(2),
+    blockNumber: '0x19a3bf',
+  },
+  reentrancy_exploit: {
+    name: 'Malicious Vault Exploit',
+    method: 'withdrawAll',
+    selfTransfer: false,
+    gasPrice: (Math.random() * 400 + 250).toFixed(0),
+    gasLimit: '2500000',
+    amount: (Math.random() * 50 + 20).toFixed(2),
+    blockNumber: '0x1a5c00',
+  },
+  legit_transfer: {
+    name: 'Standard ETH Transfer',
+    method: 'transfer',
+    selfTransfer: false,
+    gasPrice: (Math.random() * 10 + 15).toFixed(0),
+    gasLimit: '21000',
+    amount: (Math.random() * 2.0 + 0.1).toFixed(2),
+    blockNumber: '0x12d687',
+  },
+};
+
+async function generateLiveTransaction(forceType = null, attackScenario = null) {
   let template;
-  if (forceType === 'fraud') {
+  if (attackScenario && ATTACK_SCENARIOS[attackScenario]) {
+    // Use the specific attack scenario for labeled buttons
+    const sc = ATTACK_SCENARIOS[attackScenario];
+    template = {
+      name: sc.name,
+      method: sc.method,
+      amount: sc.amount,
+      gasPrice: sc.gasPrice,
+      gasLimit: sc.gasLimit,
+      isSuspicious: attackScenario !== 'legit_transfer',
+    };
+  } else if (forceType === 'fraud') {
     const fraudTemplates = SAMPLE_TEMPLATES.filter((t) => t.isSuspicious);
     template = fraudTemplates[Math.floor(Math.random() * fraudTemplates.length)];
   } else if (forceType === 'legit') {
@@ -88,7 +141,8 @@ async function generateLiveTransaction(forceType = null) {
   }
 
   const fromAddr = fullAddress();
-  const toAddr = template.isSuspicious && Math.random() > 0.5 ? fromAddr : fullAddress(); // Same address self-transfer anomaly for fraud
+  const useSelfTransfer = attackScenario ? ATTACK_SCENARIOS[attackScenario]?.selfTransfer : (template.isSuspicious && Math.random() > 0.5);
+  const toAddr = useSelfTransfer ? fromAddr : fullAddress();
 
   const formData = {
     from: fromAddr,
@@ -114,6 +168,29 @@ async function generateLiveTransaction(forceType = null) {
     // Graceful fallback if backend is starting
   }
 
+  // Fire to RPC Proxy in the background (triggers terminal log in right window)
+  let proxyBlocked = false;
+  const blockNumberHex = attackScenario && ATTACK_SCENARIOS[attackScenario]
+    ? ATTACK_SCENARIOS[attackScenario].blockNumber
+    : '0x12d687';
+
+  const rpcTxParams = {
+    from: fromAddr,
+    to: toAddr,
+    gas: '0x' + parseInt(template.gasLimit).toString(16),
+    gasPrice: '0x' + Math.round(parseFloat(template.gasPrice) * 1e9).toString(16),
+    value: '0x' + Math.round(parseFloat(template.amount) * 1e18).toString(16),
+    blockNumber: blockNumberHex,
+  };
+
+  sendToRpcProxy(rpcTxParams)
+    .then((res) => {
+      if (res.blocked) {
+        proxyBlocked = true;
+      }
+    })
+    .catch(() => {});
+
   const riskScore = Math.round(probability * 100);
   const status = isFraud ? 'BLOCKED' : riskScore >= 40 ? 'WARNING' : 'ALLOWED';
 
@@ -134,6 +211,8 @@ async function generateLiveTransaction(forceType = null) {
     isFraud,
     status,
     execTimeMs,
+    proxyBlocked,
+    attackScenario: attackScenario || null,
     time: new Date().toLocaleTimeString(),
     timestamp: Date.now(),
     featureVector,
@@ -240,8 +319,8 @@ export default function LiveMonitor() {
   }, [live]);
 
   // Handle Manual Attack / Transfer Injection
-  const handleSimulate = async (type) => {
-    const newTx = await generateLiveTransaction(type);
+  const handleSimulate = async (type, attackScenario = null) => {
+    const newTx = await generateLiveTransaction(type, attackScenario);
     setTransactions((prev) => [newTx, ...prev.slice(0, 19)]);
     setStats((prev) => ({
       total: prev.total + 1,
@@ -417,8 +496,8 @@ export default function LiveMonitor() {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2">
+            {/* Quick Actions — Labeled Attack Scenarios */}
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={handleFetchAlchemy}
                 disabled={loadingAlchemy}
@@ -430,21 +509,39 @@ export default function LiveMonitor() {
               </button>
 
               <button
-                onClick={() => handleSimulate('fraud')}
+                onClick={() => handleSimulate('fraud', 'phishing_drainer')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 text-xs font-bold transition-all"
-                title="Inject a malicious fraud transaction into firewall"
+                title="Simulate a phishing drainer contract (self-transfer + extreme gas)"
               >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                Simulate Attack
+                <Skull className="w-3.5 h-3.5" />
+                Phishing Drainer
               </button>
 
               <button
-                onClick={() => handleSimulate('legit')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 hover:bg-green-500/25 text-xs font-bold transition-all"
-                title="Inject a legitimate transaction into firewall"
+                onClick={() => handleSimulate('fraud', 'honeypot_scam')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400 hover:bg-orange-500/25 text-xs font-bold transition-all"
+                title="Simulate a fake token honeypot scam"
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Simulate Transfer
+                <Bug className="w-3.5 h-3.5" />
+                Honeypot Scam
+              </button>
+
+              <button
+                onClick={() => handleSimulate('fraud', 'reentrancy_exploit')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/25 text-xs font-bold transition-all"
+                title="Simulate a reentrancy vault exploit"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reentrancy Exploit
+              </button>
+
+              <button
+                onClick={() => handleSimulate('legit', 'legit_transfer')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 hover:bg-green-500/25 text-xs font-bold transition-all"
+                title="Simulate a legitimate ETH transfer"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                Legitimate Transfer
               </button>
 
               <button
@@ -543,6 +640,15 @@ export default function LiveMonitor() {
                           </>
                         )}
                       </div>
+                      {tx.proxyBlocked && (
+                        <motion.span
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mt-1 px-2 py-0.5 rounded text-[9px] font-black bg-red-500/25 text-red-300 border border-red-500/40 animate-pulse"
+                        >
+                          PROXY BLOCKED
+                        </motion.span>
+                      )}
                     </div>
 
                     {/* Inspect Button */}

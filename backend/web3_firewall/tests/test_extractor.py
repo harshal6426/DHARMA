@@ -89,7 +89,6 @@ EIP1559_TX = {
 
 class TestExtractFeaturesStandard:
     def test_eth_send_tx_returns_all_keys(self) -> None:
-        from data_loader import TRANSACTION_FEATURES  # noqa: F401 — just for the list
         features = extract_features(ETH_SEND_TX)
         expected_keys = {
             "length_transaction_hash", "length_to", "log_removed", "block_number",

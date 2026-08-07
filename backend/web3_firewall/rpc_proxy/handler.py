@@ -144,7 +144,7 @@ async def route_through_firewall(
     rpc_method: str,
     params: Any,
     inference_url: str = INFERENCE_ENGINE_URL,
-) -> Tuple[bool, float]:
+) -> Tuple[bool, float, Dict[str, Any], float]:
     """Extract features from the tx payload and call the inference engine.
 
     Parameters
@@ -158,20 +158,22 @@ async def route_through_firewall(
 
     Returns
     -------
-    (is_fraud, fraud_probability)
+    (is_fraud, fraud_probability, features, latency_ms)
         ``is_fraud`` is True when the firewall decides to block.
+        ``features`` is the extracted feature dict (empty on failure).
+        ``latency_ms`` is the inference engine latency in milliseconds.
     """
     tx_payload = _parse_tx_from_params(rpc_method, params)
     if tx_payload is None:
         logger.warning("Could not extract tx payload from params — allowing by default.")
-        return False, 0.0
+        return False, 0.0, {}, 0.0
 
     # --- Feature extraction ------------------------------------------------ #
     try:
         features = extract_features(tx_payload)
     except ExtractionError as exc:
         logger.error("Feature extraction failed: %s — allowing by default.", exc)
-        return False, 0.0
+        return False, 0.0, {}, 0.0
 
     # --- Call inference engine --------------------------------------------- #
     predict_url = f"{inference_url.rstrip('/')}/predict"
@@ -182,17 +184,18 @@ async def route_through_firewall(
         result = response.json()
         is_fraud: bool = result.get("is_fraud", False)
         fraud_probability: float = result.get("fraud_probability", 0.0)
+        latency_ms: float = result.get("exec_time_ms", 0.0)
         logger.info(
             "Inference result — is_fraud=%s, probability=%.4f, latency=%.2f ms",
-            is_fraud, fraud_probability, result.get("exec_time_ms", 0.0),
+            is_fraud, fraud_probability, latency_ms,
         )
-        return is_fraud, fraud_probability
+        return is_fraud, fraud_probability, features, latency_ms
     except httpx.HTTPStatusError as exc:
         logger.error("Inference engine returned HTTP %d — allowing by default.", exc.response.status_code)
-        return False, 0.0
+        return False, 0.0, features, 0.0
     except httpx.RequestError as exc:
         logger.error("Could not reach inference engine (%s) — allowing by default.", exc)
-        return False, 0.0
+        return False, 0.0, features, 0.0
 
 
 async def forward_to_rpc(

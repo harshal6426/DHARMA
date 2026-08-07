@@ -6,10 +6,8 @@ import { checkHealth } from '../services/api';
 const navLinks = [
   { name: 'Home', href: '#home' },
   { name: 'Features', href: '#features' },
-  { name: 'Dashboard', href: '#dashboard' },
   { name: 'Live Firewall', href: '#live' },
   { name: 'Analytics', href: '#analytics' },
-  { name: 'Documentation', href: '#tech' },
   { name: 'Contact', href: '#footer' },
 ];
 

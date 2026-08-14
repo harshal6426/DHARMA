@@ -31,27 +31,17 @@ from inference_engine.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# The trained Random Forest model uses exactly these 7 features (in this order).
+# At runtime, _build_feature_array() prefers model.feature_names_in_ if available;
+# this constant serves as the documented fallback.
 FEATURE_ORDER: Sequence[str] = (
     "length_transaction_hash",
     "length_to",
-    "log_removed",
     "block_number",
-    "gas_used",
-    "length_from",
-    "index",
     "gas_efficiency",
-    "value",
     "chain_id",
-    "total_gas_cost",
-    "gas_per_log_event",
-    "event_activity_flag",
-    "normalized_token_transfer",
     "effective_gas_price",
-    "cumulative_gas_used",
     "is_same_address",
-    "gas_price_ratio",
-    "length_log",
-    "log_count",
 )
 
 # Reuse a single executor across requests to avoid per-request thread spawn overhead.

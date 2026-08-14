@@ -125,9 +125,13 @@ def extract_features(tx_payload: Dict[str, Any]) -> Dict[str, float]:
 
     # Gas limit (sent by user) vs gas used (confirmed in receipt)
     gas_limit = _hex_to_float(tx_payload.get("gas"), "gas", default=21_000.0)
-    gas_used = _hex_to_float(
-        tx_payload.get("gasUsed") or tx_payload.get("gas"), "gasUsed", default=gas_limit
-    )
+    # For pending transactions gasUsed is absent; estimate as 70% of gas_limit
+    # rather than assuming 100% usage (which makes gas_efficiency always 1.0).
+    raw_gas_used = tx_payload.get("gasUsed")
+    if raw_gas_used is not None:
+        gas_used = _hex_to_float(raw_gas_used, "gasUsed", default=gas_limit)
+    else:
+        gas_used = gas_limit * 0.7
 
     # EIP-1559 fields with legacy fallback
     effective_gas_price = _hex_to_float(

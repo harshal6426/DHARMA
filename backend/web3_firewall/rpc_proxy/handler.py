@@ -191,11 +191,11 @@ async def route_through_firewall(
         )
         return is_fraud, fraud_probability, features, latency_ms
     except httpx.HTTPStatusError as exc:
-        logger.error("Inference engine returned HTTP %d — allowing by default.", exc.response.status_code)
-        return False, 0.0, features, 0.0
+        logger.error("Inference engine returned HTTP %d — BLOCKING by default (fail-closed).", exc.response.status_code)
+        return True, 1.0, features, 0.0
     except httpx.RequestError as exc:
-        logger.error("Could not reach inference engine (%s) — allowing by default.", exc)
-        return False, 0.0, features, 0.0
+        logger.error("Could not reach inference engine (%s) — BLOCKING by default (fail-closed).", exc)
+        return True, 1.0, features, 0.0
 
 
 async def forward_to_rpc(

@@ -16,7 +16,8 @@ Real-time AI-powered Ethereum transaction firewall. Intercepts transactions from
 │       └── requirements_runtime.txt   # Python dependencies
 ├── frontend/                          # React + Vite frontend
 ├── .env.example                       # Environment template
-└── README.md
+├── README.md                          # Quick start & setup guide
+└── WORKFLOW.md                        # Complete technical workflow & architecture document
 ```
 
 ## Prerequisites

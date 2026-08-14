@@ -49,7 +49,7 @@ start_services() {
   else
     echo -e "  ${YELLOW}⏳${RESET} Starting Inference Engine on :8001 ..."
     cd "$BACKEND_DIR"
-    PYTHONPATH=. nohup python -m inference_engine.main > /tmp/firewall_inference.log 2>&1 &
+    PYTHONPATH=. nohup python -m inference_engine.api.main > /tmp/firewall_inference.log 2>&1 &
     echo -e "  ${GREEN}✓${RESET} Inference Engine started (PID: $!, log: /tmp/firewall_inference.log)"
   fi
 

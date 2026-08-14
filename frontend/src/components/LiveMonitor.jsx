@@ -113,7 +113,7 @@ const ATTACK_SCENARIOS = {
     gasPrice: (Math.random() * 10 + 15).toFixed(0),
     gasLimit: '21000',
     amount: (Math.random() * 2.0 + 0.1).toFixed(2),
-    blockNumber: '0x12d687',
+    blockNumber: '0x186a0',
   },
 };
 
@@ -172,7 +172,7 @@ async function generateLiveTransaction(forceType = null, attackScenario = null) 
   let proxyBlocked = false;
   const blockNumberHex = attackScenario && ATTACK_SCENARIOS[attackScenario]
     ? ATTACK_SCENARIOS[attackScenario].blockNumber
-    : '0x12d687';
+    : '0x186a0';
 
   const rpcTxParams = {
     from: fromAddr,

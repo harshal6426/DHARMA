@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Pen, Wifi, Cpu, Brain, BarChart3, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Pen, Wifi, Cpu, Brain, BarChart3, CheckCircle } from 'lucide-react';
 
 const steps = [
   {

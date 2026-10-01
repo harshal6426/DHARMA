@@ -19,7 +19,7 @@ function BlockchainCanvas() {
     resize();
     window.addEventListener('resize', resize);
 
-    const nodes = Array.from({ length: 18 }, (_, i) => ({
+    const nodes = Array.from({ length: 18 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * 0.4,
@@ -73,7 +73,7 @@ function BlockchainCanvas() {
       }
 
       // Draw nodes
-      nodes.forEach((n, idx) => {
+      nodes.forEach((n) => {
         const pulse = Math.sin(time * 2 + n.pulse) * 0.5 + 0.5;
         const glowRadius = n.r + pulse * 8;
 

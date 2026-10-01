@@ -3,7 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { BarChart2, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend
+  ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 
 const areaData = [

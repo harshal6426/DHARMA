@@ -141,12 +141,12 @@ class TestPredictEndpoint:
     def test_predict_fraud_above_threshold(
         self, app_client: TestClient, minimal_features: Dict[str, float]
     ) -> None:
-        # Mock returns 0.85 probability — above default threshold of 0.80
+        # Mock returns 0.85 probability — above default threshold of 0.65
         resp = app_client.post("/predict", json=minimal_features)
         assert resp.status_code == 200
         data = resp.json()
         assert data["is_fraud"] is True
-        assert data["fraud_probability"] > 0.80
+        assert data["fraud_probability"] > 0.65
 
     def test_predict_legitimate_below_threshold(
         self, app_client: TestClient, minimal_features: Dict[str, float], mock_rf_model: MagicMock

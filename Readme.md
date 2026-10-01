@@ -9,7 +9,7 @@ Real-time, AI-powered Ethereum transaction firewall. Intercepts JSON-RPC transac
 - **Wallet-Level Interception:** Sits transparently as an Ethereum RPC Proxy (`:8545`) between user wallets (MetaMask, Rabby) and upstream blockchain nodes (Alchemy, Infura, Cloudflare).
 - **Sub-Millisecond ML Inference:** Fast scoring API (`:8001`) with in-memory Random Forest model evaluation (< 2 ms median latency).
 - **20-Feature DeFiTransLyzer Vector:** Dynamic extraction of structural, gas, block context, value, and log event metrics from raw transaction payloads.
-- **Fail-Closed Security:** Configurable fraud threshold (default `0.80`) with automatic blocking of phishing drainers, honeypots, and reentrancy exploits.
+- **Fail-Closed Security:** Configurable fraud threshold (default `0.65`) with automatic blocking of phishing drainers, honeypots, and reentrancy exploits.
 - **Explainable AI (XAI):** Plain-language breakdown of risk factors (e.g., self-transfers, abnormal gas-to-base-fee ratios, drainer patterns) for end-users.
 - **Interactive UI Dashboard:** React + Vite + Tailwind CSS frontend (`:5173`) featuring a live transaction monitor, transaction simulator, risk analytics, and real-time alerts.
 - **1-Click Demo Launcher:** Automated shell script (`demo.sh`) to launch all services, run attack simulations, and inspect proxy terminal logs.
@@ -45,7 +45,7 @@ Real-time, AI-powered Ethereum transaction firewall. Intercepts JSON-RPC transac
       ┌──────┴────────────────────────┐
       │                               │
    [BLOCKED]                       [ALLOWED]
-(Fraud Prob > 0.80)           (Fraud Prob <= 0.80)
+(Fraud Prob > 0.65)           (Fraud Prob <= 0.65)
       │                               │
       ▼                               ▼
  Return JSON-RPC Error         Forward to Upstream Node
@@ -296,7 +296,7 @@ Configure these in `.env` (or `backend/web3_firewall/.env`):
 | `PROXY_HOST` | `0.0.0.0` | RPC proxy network bind address |
 | `PROXY_PORT` | `8545` | RPC proxy listening port |
 | `MODEL_PATH` | `../models/random_forest_fraud_model.joblib` | Path to trained `.joblib` model file |
-| `FRAUD_THRESHOLD` | `0.80` | Probability cutoff above which transactions are blocked |
+| `FRAUD_THRESHOLD` | `0.65` | Probability cutoff above which transactions are blocked |
 | `LOG_LEVEL` | `INFO` | Python logging verbosity (`DEBUG`, `INFO`, `WARNING`) |
 
 ---

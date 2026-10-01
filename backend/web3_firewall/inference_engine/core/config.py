@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     model_path: Path = Path("../training_pipeline/models/random_forest_fraud_model.joblib")
 
     #: Fraud probability above which a transaction is *blocked*.
-    fraud_threshold: float = 0.80
+    fraud_threshold: float = 0.65
 
     # ------------------------------------------------------------------ #
     # Server

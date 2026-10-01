@@ -217,13 +217,13 @@ export default function Hero() {
               className="flex flex-wrap gap-4"
             >
               <motion.a
-                href="#dashboard"
+                href="#features"
                 className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all duration-300 glow-cyan"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
               >
                 <Shield className="w-5 h-5" />
-                Launch Dashboard
+                Explore Features
                 <ArrowRight className="w-4 h-4" />
               </motion.a>
 

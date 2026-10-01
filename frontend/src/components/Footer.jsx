@@ -35,12 +35,12 @@ export default function Footer() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <motion.a
-                href="#live"
+                href="#analytics"
                 className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all duration-300"
                 whileHover={{ scale: 1.04, y: -2 }}
               >
                 <Shield className="w-5 h-5" />
-                Launch Live Firewall
+                View Analytics
               </motion.a>
               <motion.a
                 href="https://github.com"

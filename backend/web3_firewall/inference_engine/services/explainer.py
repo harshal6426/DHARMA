@@ -7,6 +7,9 @@ AI-powered risk explanation service for the Web3 Transaction Firewall.
 Gathers structured transaction risk signals, redacts sensitive address data,
 and generates human-readable risk explanations via LLM (or rule-based fallback).
 
+LLM Provider: Groq (free tier) using Llama 3 model.
+Get your free API key at: https://console.groq.com/keys
+
 Response Schema
 ---------------
 {
@@ -29,7 +32,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 
 def mask_address(address: Optional[str]) -> str:
@@ -59,8 +62,8 @@ def _build_rule_fallback_explanation(
     gas_used = features.get("gas_used", 21000.0)
     log_removed = features.get("log_removed", 0.0) > 0.5
 
-    # Determine risk level
-    if is_fraud or fraud_probability >= 0.70:
+    # Determine risk level (aligned with FRAUD_THRESHOLD=0.65)
+    if is_fraud or fraud_probability >= 0.65:
         risk_level = "high"
     elif fraud_probability >= 0.40:
         risk_level = "medium"
@@ -131,14 +134,18 @@ def _build_rule_fallback_explanation(
     }
 
 
-async def _call_llm_explainer(
+async def _call_groq_explainer(
     features: Dict[str, float],
     fraud_probability: float,
     raw_from: Optional[str] = None,
     raw_to: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Call Anthropic Claude API (claude-sonnet-4-6) to generate JSON risk explanation."""
-    if not ANTHROPIC_API_KEY:
+    """Call Groq API (Llama 3.3 70B) to generate JSON risk explanation.
+
+    Groq provides free-tier access with very fast inference (~200ms).
+    Get a free API key at: https://console.groq.com/keys
+    """
+    if not GROQ_API_KEY:
         return None
 
     masked_from = mask_address(raw_from)
@@ -146,54 +153,95 @@ async def _call_llm_explainer(
     value_eth = features.get("value", 0.0) / 1e18
     gas_price_ratio = features.get("gas_price_ratio", 1.0)
     gas_used = features.get("gas_used", 21000.0)
+    gas_efficiency = features.get("gas_efficiency", 0.7)
+    is_same_address = features.get("is_same_address", 0.0) > 0.5
+    effective_gas_price_gwei = features.get("effective_gas_price", 0.0) / 1e9
 
     system_prompt = (
-        "You are an expert Web3 DeFi fraud security analyst. Analyze the provided transaction signals "
-        "and return ONLY a JSON object with no Markdown framing or preamble. "
-        "The JSON MUST match this exact format:\n"
+        "You are an expert Web3 DeFi fraud security analyst working for a real-time transaction firewall. "
+        "Analyze the provided Ethereum transaction feature signals from our Random Forest ML model "
+        "and return ONLY a valid JSON object with no Markdown framing, code fences, or preamble.\n\n"
+        "The JSON MUST match this exact schema:\n"
         "{\n"
         '  "risk_level": "low" | "medium" | "high",\n'
-        '  "reasons": ["plain language bullet 1", "plain language bullet 2"],\n'
-        '  "recommendation": "clear actionable recommendation"\n'
-        "}\n"
-        "Do NOT include PII or full raw addresses."
+        '  "reasons": ["detailed plain-language reason 1", "detailed plain-language reason 2", "reason 3"],\n'
+        '  "recommendation": "clear, actionable security recommendation for the wallet owner"\n'
+        "}\n\n"
+        "Guidelines:\n"
+        "- Provide 2-4 specific, technical reasons explaining WHY the transaction is risky or safe.\n"
+        "- Reference the actual feature values (gas price, self-transfer flag, etc.) in your reasons.\n"
+        "- The recommendation must be actionable (e.g., 'Do NOT sign', 'Verify contract source', 'Safe to proceed').\n"
+        "- Do NOT include full raw addresses or PII.\n"
+        "- Do NOT wrap the JSON in markdown code fences."
     )
 
     user_content = (
-        f"Transaction Risk Profile:\n"
-        f"- Fraud Probability Score: {fraud_probability * 100:.1f}%\n"
-        f"- From Address: {masked_from}\n"
-        f"- To Address: {masked_to}\n"
-        f"- Amount: {value_eth:.4f} ETH\n"
-        f"- Gas Price Ratio: {gas_price_ratio:.2f}x\n"
-        f"- Gas Used: {gas_used:,.0f}\n"
-        f"- Self Transfer: {features.get('is_same_address', 0.0) > 0.5}\n"
+        f"Ethereum Transaction Risk Analysis:\n"
+        f"──────────────────────────────────\n"
+        f"ML Model Fraud Probability: {fraud_probability * 100:.1f}%\n"
+        f"From Address: {masked_from}\n"
+        f"To Address: {masked_to}\n"
+        f"Transfer Amount: {value_eth:.6f} ETH\n"
+        f"Gas Price Ratio (vs base fee): {gas_price_ratio:.2f}x\n"
+        f"Effective Gas Price: {effective_gas_price_gwei:.1f} Gwei\n"
+        f"Gas Used: {gas_used:,.0f} units\n"
+        f"Gas Efficiency (used/limit): {gas_efficiency:.2f}\n"
+        f"Self-Transfer (from == to): {is_same_address}\n"
+        f"──────────────────────────────────\n"
+        f"Provide your expert security analysis as JSON."
     )
 
     try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
+        async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.post(
-                "https://api.anthropic.com/v1/messages",
+                "https://api.groq.com/openai/v1/chat/completions",
                 headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json",
                 },
                 json={
-                    "model": "claude-sonnet-4-6",
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content},
+                    ],
+                    "temperature": 0.3,
                     "max_tokens": 500,
-                    "system": system_prompt,
-                    "messages": [{"role": "user", "content": user_content}],
+                    "response_format": {"type": "json_object"},
                 },
             )
             if resp.status_code == 200:
                 data = resp.json()
-                text_content = data.get("content", [{}])[0].get("text", "")
+                text_content = (
+                    data.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                )
+                # Strip potential markdown code fences
+                text_content = text_content.strip()
+                if text_content.startswith("```"):
+                    text_content = text_content.split("\n", 1)[-1]
+                if text_content.endswith("```"):
+                    text_content = text_content.rsplit("```", 1)[0]
+                text_content = text_content.strip()
+
                 parsed = json.loads(text_content)
-                parsed["is_fallback"] = False
-                return parsed
+                # Validate required fields
+                if "risk_level" in parsed and "reasons" in parsed and "recommendation" in parsed:
+                    parsed["is_fallback"] = False
+                    return parsed
+                else:
+                    logger.warning("Groq response missing required fields: %s", parsed.keys())
+            else:
+                logger.warning(
+                    "Groq API returned status %d: %s",
+                    resp.status_code,
+                    resp.text[:200],
+                )
+    except json.JSONDecodeError as exc:
+        logger.warning("Failed to parse Groq JSON response: %s", exc)
     except Exception as exc:
-        logger.warning("LLM explanation request failed or timed out: %s", exc)
+        logger.warning("Groq explanation request failed or timed out: %s", exc)
 
     return None
 
@@ -207,12 +255,13 @@ async def explain_transaction_risk(
 ) -> Dict[str, Any]:
     """Generate structured risk explanation for a transaction vector.
 
-    Tries LLM first (if API key available), seamlessly falling back to rule explainer.
+    Tries Groq LLM first (if GROQ_API_KEY is set), seamlessly falling back
+    to the deterministic rule-based explainer.
     """
     t0 = time.perf_counter()
 
-    # 1. Try LLM if configured
-    llm_result = await _call_llm_explainer(features, fraud_probability, raw_from, raw_to)
+    # 1. Try Groq LLM if configured
+    llm_result = await _call_groq_explainer(features, fraud_probability, raw_from, raw_to)
     if llm_result:
         llm_result["exec_time_ms"] = round((time.perf_counter() - t0) * 1000, 2)
         return llm_result

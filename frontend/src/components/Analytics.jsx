@@ -120,10 +120,19 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
-            className="text-gray-400 text-lg max-w-2xl mx-auto"
+            className="text-gray-400 text-lg max-w-2xl mx-auto mb-3"
           >
             Comprehensive analytics to understand the threat landscape and your security posture.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.25 }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400/80 font-medium"
+          >
+            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
+            Sample data for demonstration
+          </motion.div>
         </div>
 
         {/* Metric Cards */}

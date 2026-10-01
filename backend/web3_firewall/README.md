@@ -68,7 +68,7 @@ Swagger UI available at: http://localhost:8001/docs
 | Variable | Default | Description |
 |---|---|---|
 | `MODEL_PATH` | `../training_pipeline/models/random_forest_fraud_model.joblib` | Path to `.joblib` model |
-| `FRAUD_THRESHOLD` | `0.80` | Blocking probability cutoff |
+| `FRAUD_THRESHOLD` | `0.65` | Blocking probability cutoff |
 | `PORT` | `8001` | Server port |
 
 ### Step 2 — Start the RPC Proxy

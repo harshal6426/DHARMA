@@ -43,7 +43,7 @@ export default function Footer() {
                 View Analytics
               </motion.a>
               <motion.a
-                href="https://github.com"
+                href="https://github.com/harshal6426/DHARMA"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-gray-300 glass border border-white/10 hover:border-cyan-500/30 hover:text-white transition-all duration-300"
@@ -72,7 +72,7 @@ export default function Footer() {
           </p>
           <div className="flex gap-3">
             <a
-              href="https://github.com"
+              href="https://github.com/harshal6426/DHARMA"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"

@@ -90,9 +90,9 @@ export default function Navbar() {
               <span className={healthStatus.online ? 'text-green-400' : 'text-gray-400'}>
                 {healthStatus.online
                   ? healthStatus.modelLoaded
-                    ? 'AI Model Ready'
+                    ? 'Engine Ready'
                     : 'Backend Online'
-                  : 'AI Engine Offline'}
+                  : 'Engine Offline'}
               </span>
             </div>
           </div>

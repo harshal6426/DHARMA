@@ -182,7 +182,7 @@ export default function Hero() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-cyan-500/20 text-sm text-cyan-400 font-medium mb-8"
             >
               <span className="w-2 h-2 bg-cyan-400 rounded-full animate-blink" />
-              AI-Powered Web3 Security Platform
+              Web3 Security Platform
               <span className="px-2 py-0.5 bg-cyan-500/20 rounded-full text-xs">LIVE</span>
             </motion.div>
 
@@ -205,7 +205,7 @@ export default function Hero() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="text-lg text-gray-400 leading-relaxed mb-10 max-w-xl"
             >
-              DeFiShield is an AI-powered real-time transaction firewall that analyzes blockchain
+              DeFiShield is a real-time transaction firewall that analyzes blockchain
               transactions before execution and detects zero-day fraud using machine learning.
             </motion.p>
 
@@ -337,7 +337,7 @@ export default function Hero() {
                   <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
                   <div>
                     <div className="text-xs font-bold text-green-400">TRANSACTION SAFE</div>
-                    <div className="text-xs text-gray-500">Verified by AI</div>
+                    <div className="text-xs text-gray-500">Verified Secure</div>
                   </div>
                 </div>
               </motion.div>

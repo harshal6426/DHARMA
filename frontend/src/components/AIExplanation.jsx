@@ -340,7 +340,7 @@ export default function AIExplanation() {
                     <div>
                       <h3 className="text-lg font-bold text-white font-[Manrope]">AI Model Analysis</h3>
                       <p className="text-xs text-gray-500">
-                        {result.explanation.is_fallback ? 'Rule-based explainer' : 'LLM-powered explainer'} · {result.prediction.exec_time_ms.toFixed(1)}ms inference
+                        {result.explanation.is_fallback ? 'Rule-based explainer' : 'Deep risk analysis'} · {result.prediction.exec_time_ms.toFixed(1)}ms inference
                       </p>
                     </div>
                     <div className={`flex items-center gap-2 text-xs font-bold ${

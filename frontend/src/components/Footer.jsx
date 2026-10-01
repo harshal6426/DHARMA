@@ -68,7 +68,7 @@ export default function Footer() {
             </span>
           </a>
           <p className="text-gray-500 text-sm leading-relaxed mb-5 max-w-md">
-            AI-powered real-time transaction firewall for the decentralized web.
+            Real-time transaction firewall for the decentralized web.
           </p>
           <div className="flex gap-3">
             <a
